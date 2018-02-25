@@ -38,6 +38,9 @@ Only a few steps are necessary to get your virtual machine up and running:
 3. Clone this repository.
 4. Edit the provisioning configuration located at `configuration.yml` and modify it to your needs.
     - If you want to use automatic update of the VirtualBox guest additions make sure to set `vbguest_auto_update` to `true`.
+    - If you want to try foundation and `start` distribution instead of bootstrap and `introduction` package: 
+      - comment the typo3_community_extensions block for `bootstrap+introduction` and 
+      - uncomment the block for `foundation+start` distribution 
 5. Run `vagrant up` to boot and provision the virtual machine. If you have installed the `vagrant-hostmanager` plug-in vagrant will ask you for your password to escalate privileges to modify the `/etc/hosts` file.
 
 ## How do I get onto the box?
