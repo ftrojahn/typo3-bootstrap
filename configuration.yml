@@ -160,7 +160,8 @@ typo3_extensions:
 #
 typo3_community_extensions:
   - {composer_package: dmitryd/typo3-realurl, extension_key: realurl, constraint: ~}
-  - {composer_package: typo3/cms-introduction, extension_key: introduction, constraint: ^3.0}
+  ## Variant: bootstrap and introduction package   
+  # - {composer_package: typo3/cms-introduction, extension_key: introduction, constraint: ^3.0}
   # - {composer_package: in2code/powermail, extension_key: powermail, constraint: ~}
   # - {composer_package: in2code/powermail_cond, extension_key: powermail_cond, constraint: ~}
   # - {composer_package: in2code/powermailrecaptcha, extension_key: powermailrecaptcha, constraint: ~}
@@ -181,24 +182,24 @@ typo3_community_extensions:
   # If you want to try it out, comment the above typo3/cms-introduction line
   # and uncomment the following lines
   # #
-  #  - {composer_package: in2code/powermail, extension_key: powermail, constraint: ~}
-  #  - {composer_package: gridelementsteam/gridelements, extension_key: gridelements, constraint: ~}
-  #  - {composer_package: typo3-ter/refresh, extension_key: refresh, constraint: ~}
-  #  - {composer_package: typo3-ter/t3foundation, extension_key: t3foundation, constraint: ~}
-  #  - {composer_package: typo3-ter/start, extension_key: start, constraint: ~}
-  #  - {composer_package: typo3-ter/startcustomer, extension_key: startcustomer, constraint: ~}
-  #  - {composer_package: typo3-ter/browser, extension_key: browser, constraint: ~}
-  #  - {composer_package: typo3-ter/leaflet, extension_key: leaflet, constraint: ~}
-  #  - {composer_package: typo3-ter/org, extension_key: org, constraint: ~}
-  #  - {composer_package: typo3-ter/powermail, extension_key: powermail, constraint: ~}
-  #  - {composer_package: typo3-ter/direct-mail, extension_key: direct_mail, constraint: ~}
-  #    ## optional TYPO3 GRÜNE template and site contents (comment if starting new project):
-  #  - {composer_package: typo3-ter/launch, extension_key: launch, constraint: ~}
-  #  - {composer_package: typo3-ter/startgreen, extension_key: startgreen, constraint: ~}
-  #  - {composer_package: typo3-ter/launchstartgreen, extension_key: launchstartgreen, constraint: ~}
-  #    ## optional, but useful:
-  #  - {composer_package: typo3-ter/slick, extension_key: slick, constraint: ~}
-  #  - {composer_package: typo3-ter/tsconf, extension_key: tsconf, constraint: ~}
+  - {composer_package: in2code/powermail, extension_key: powermail, constraint: ~}
+  - {composer_package: gridelementsteam/gridelements, extension_key: gridelements, constraint: ~}
+  - {composer_package: typo3-ter/refresh, extension_key: refresh, constraint: ~}
+  - {composer_package: typo3-ter/t3foundation, extension_key: t3foundation, constraint: ~}
+  - {composer_package: typo3-ter/start, extension_key: start, constraint: ~}
+  - {composer_package: typo3-ter/startcustomer, extension_key: startcustomer, constraint: ~}
+  - {composer_package: typo3-ter/browser, extension_key: browser, constraint: ~}
+  - {composer_package: typo3-ter/leaflet, extension_key: leaflet, constraint: ~}
+  - {composer_package: typo3-ter/org, extension_key: org, constraint: ~}
+  - {composer_package: typo3-ter/powermail, extension_key: powermail, constraint: ~}
+  - {composer_package: typo3-ter/direct-mail, extension_key: direct_mail, constraint: ~}
+    ## optional TYPO3 GRÜNE template and site contents (comment if starting new project):
+  - {composer_package: typo3-ter/launch, extension_key: launch, constraint: ~}
+  - {composer_package: typo3-ter/startgreen, extension_key: startgreen, constraint: ~}
+  - {composer_package: typo3-ter/launchstartgreen, extension_key: launchstartgreen, constraint: ~}
+    ## optional, but useful:
+  - {composer_package: typo3-ter/slick, extension_key: slick, constraint: ~}
+  - {composer_package: typo3-ter/tsconf, extension_key: tsconf, constraint: ~}
   #
   # # end of foundation and start distribution variant
 
