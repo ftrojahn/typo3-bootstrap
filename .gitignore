@@ -1,5 +1,6 @@
 .DS_Store
 .idea
+*.iml
 .vagrant
 provision/playbook.retry
 site/html
