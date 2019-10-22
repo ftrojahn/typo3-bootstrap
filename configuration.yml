@@ -195,6 +195,7 @@ typo3_community_extensions:
   # The start distribution using foundation framework, start and launchstartgreen package and
   # it's dependencies are also available.
   # If you want to try it out, comment the above typo3/cms-introduction line
+  # !! activate impexp core extension above !!
   # and uncomment the following lines
   # #
   # - {composer_package: in2code/powermail, extension_key: powermail, constraint: ~}
