@@ -9,11 +9,26 @@ This package is using [bento/ubuntu-16.04](https://app.vagrantup.com/bento/boxes
 * TYPO3 8.7
 * Apache 2.4
 * MariaDB 10.0
-* PHP 7.1 (customizable via provisioning configuration)
+* PHP 7.1 (customizable)
 * GraphicsMagick 1.3
 * MailHog 1.0.0
 * PhpMyAdmin 4.5.4
-* Node.js 6.x
+* Node.js 8.x
+
+## PHP Modules
+
+The following additional PHP modules are installed
+
+* Curl
+* GD
+* Intl
+* Mbstring
+* Mcrypt (not available in PHP 7.2 and above)
+* Mysql
+* Soap
+* Xdebug
+* XML
+* ZIP
 
 ## Requirements
 
@@ -73,7 +88,7 @@ To connect to the virtual machine through SSH just enter `vagrant ssh` and you a
 
 ## Post configuration
 
-Modern TYPO3 installations are now shipped with a fanstatic tool to configure most stuff directly on the command line. Just SSH into the virtual machine and let the magic happen:
+This modern TYPO3 installation is shipped with a fanstatic tool to configure important settings of your project directly on the command line. Just SSH into the virtual machine and let the magic happen:
 
 ```
 user@local$ vagrant ssh
@@ -84,19 +99,18 @@ vagrant@vm$ vendor/bin/typo3cms
 
 If you run `typo3cms` without any parameters you'll get a list of available commands. To get additional help for a specific command just use `vendor/bin/typo3cms help <command>`.
 
-If you want to clear the TYPO3 cache just run `vendor/bin/typo3cms cache:clear`. This is way more fast than clearing the cache through the TYPO3 backend especially when not logged in.
+If you want to clear the TYPO3 cache for instance just run `vendor/bin/typo3cms cache:flush`. This way clearing the TYPO3 cache is much quicker than clearing the cache through the TYPO3 backend.
 
-## What about TYPO3 7.6?
+## PHP
 
-Although this packages is meant to provision TYPO3 8.7 it should also be possible provisioning an earlier TYPO3 version like 7.6. Please bear in mind that this feature has not yet been fully tested so there is no 100% guarantee that this will work.
+### Version setting
+By default PHP 7.1 is installed/used on the virtual machine. You can however customize the installed PHP version by changing the PHP version in the provisioning configuration.
 
-Please check the comments in the provisioning configuration for additional information on how to set up this package to provision TYPO3 7.6.
+If you want to use PHP 7.2 for instance, just change `php_version` to `7.2` in `configuration.yml`. Please also make sure that you comment out the `php-mcrypt` package installation as mcrypt is no longer available in PHP 7.2 and above.
 
-## PHP Version
+### Debugging and Profiling
 
-By default PHP 7.1 is installed/used on the virtual machine. You can however customize the installed PHP version by changing the list of installed packages and set the correct PHP version in the provisioning configuration.
-
-If you want to use PHP 7.2 for instance, just change `php_version` to `7.2` and change all occurences of `php7.1` to `php7.2` in the `requirements` section in `configuration.yml`.
+With this package it is possible to debug your PHP code using Xdebug. Xdebug is an extension for PHP to assist with debugging and development and is automatically installed during the provisioning process. The package also comes with a default working debugger configuration for Visual Studio Code but it should be no problem to create a working configuration for another IDE of your choice.
 
 ## TLS encryption
 
@@ -115,5 +129,4 @@ Additional information on how to customize your hostname without breaking valida
 
 ## Credits
 
-* The provisioning workflow is loosely based on the provisioning workflow used in the [VCCW](https://github.com/vccw-team/vccw) project.
 * Thanks to [Reizwerk GmbH](https://www.reizwerk.com) allowing me to use some of my work time for package development.

@@ -1,12 +1,11 @@
 ---
 - name: Update OS packages
   apt:
-    name: "{{ item }}"
+    name:
+      - aptitude
+      - python-mysqldb
     update_cache: yes
     state: present
-  with_items:
-    - aptitude
-    - python-mysqldb
 
 - name: Generate locales
   command: locale-gen {{ item }}
@@ -27,13 +26,12 @@
   apt:
      autoremove: yes
 
-- name: Add PHP 7.1 PPA
+- name: Add PHP PPA
   apt_repository:
     repo: 'ppa:ondrej/php'
 
-- name: Install required packages
-  apt: name={{ item }} state=present
-  with_items: "{{ t3bs.requirements }}"
+- name: Install required OS packages
+  apt: name={{ t3bs.requirements | regex_replace('#PHPVER#', t3bs.php_version) }} state=present
 
 - name: Create custom CA certificate directory
   file:
@@ -84,7 +82,7 @@
 
 - name: Download nodejs installer
   get_url:
-    url: https://deb.nodesource.com/setup_6.x
+    url: https://deb.nodesource.com/setup_8.x
     dest: /tmp/nodejs-installer.sh
   when: t3bs.install_nodejs == "yes"
 
@@ -180,6 +178,37 @@
     backup: yes
   with_items: "{{ t3bs.php_ini_cli }}"
 
+- name: Add xdebug configuration file
+  template:
+    src: ../templates/xdebug.ini.j2
+    dest: /etc/php/{{ t3bs.php_version }}/mods-available/xdebug.ini
+    mode: 0644
+    force: no
+
+- name: Create xdebug IDE configuration directory
+  file:
+    path: /vagrant/.vscode
+    state: directory
+
+- name: Add xdebug IDE configuration file
+  template:
+    src: ../templates/launch.json.j2
+    dest: /vagrant/.vscode/launch.json
+    mode: 0644
+    force: no
+
+- name: Enable xdebug (apache)
+  file:
+    src:  /etc/php/{{ t3bs.php_version }}/mods-available/xdebug.ini
+    dest: /etc/php/{{ t3bs.php_version }}/apache2/conf.d/20-xdebug.ini
+    state: link
+
+- name: Enable xdebug (cli)
+  file:
+    src:  /etc/php/{{ t3bs.php_version }}/mods-available/xdebug.ini
+    dest: /etc/php/{{ t3bs.php_version }}/cli/conf.d/20-xdebug.ini
+    state: link
+
 - name: Download composer
   get_url:
     url: https://getcomposer.org/installer
@@ -218,6 +247,14 @@
   with_items:
     - { regexp: "^export APACHE_RUN_USER", line: "export APACHE_RUN_USER={{ t3bs.www_user }}"}
     - { regexp: "^export APACHE_RUN_GROUP", line: "export APACHE_RUN_GROUP={{ t3bs.www_group }}"}
+  notify: restart apache
+
+- name: Fix apache configuration to prevent it from crashing after provisioning
+  lineinfile:
+    dest: /etc/apache2/apache2.conf
+    insertafter: "^#Mutex file"
+    line: "Mutex posixsem"
+    state: present
   notify: restart apache
 
 - name: Create Webroot
@@ -287,42 +324,47 @@
     chdir: "{{ t3bs.document_root }}/{{ t3bs.project_folder }}"
   with_items: "{{ t3bs.composer }}"
 
-- name: Disable TYPO3 console extension dummy warning
-  become: yes
-  become_user: "{{ t3bs.www_user }}"
-  shell: "{{ t3bs.composer_bin_path }}/{{ t3bs.composer_bin }} config extra.helhum/typo3-console.install-extension-dummy 0"
-  args:
-    chdir: "{{ t3bs.document_root }}/{{ t3bs.project_folder }}"
-
 - name: Check for existing composer.lock file
   stat:
     path: "{{ t3bs.document_root }}/{{ t3bs.project_folder }}/composer.lock"
   register: composer_lock_file
 
-- name: Install/Update dependencies for TYPO3 project
+- name: Prepare installation of additional composer packages
+  become: yes
+  become_user: "{{ t3bs.www_user }}"
+  composer:
+    command: require
+    working_dir: "{{ t3bs.document_root }}/{{ t3bs.project_folder }}"
+    arguments: --no-update -- {{ item.composer_package }} {{ item.constraint }}
+  with_items: "{{ t3bs.composer_packages }}"
+  when: composer_lock_file.stat.exists == false
+
+- name: Prepare installation of TYPO3 core extensions
+  become: yes
+  become_user: "{{ t3bs.www_user }}"
+  composer:
+    command: require
+    working_dir: "{{ t3bs.document_root}}/{{ t3bs.project_folder}}"
+    arguments: --no-update -- typo3/cms-{{ item | regex_replace('_', '-') }} {{ t3bs.typo3_version }}
+  with_items: "{{ t3bs.typo3_extensions }}"
+  when: composer_lock_file.stat.exists == false
+
+- name: Prepare installation of TYPO3 community packages
+  become: yes
+  become_user: "{{ t3bs.www_user }}"
+  composer:
+    command: require
+    working_dir: "{{ t3bs.document_root }}/{{ t3bs.project_folder }}"
+    arguments: --no-update -- {{ item.composer_package }} {{ item.constraint }}
+  with_items: "{{ t3bs.typo3_community_extensions }}"
+  when: composer_lock_file.stat.exists == false
+
+- name: Install TYPO3 project (this may take a while)
   become: yes
   become_user: "{{ t3bs.www_user }}"
   shell: "{{ t3bs.composer_bin_path }}/{{ t3bs.composer_bin }} install --prefer-dist"
   args:
     chdir: "{{ t3bs.document_root }}/{{ t3bs.project_folder }}"
-
-- name: Install/Update additional composer packages
-  become: yes
-  become_user: "{{ t3bs.www_user }}"
-  shell: "{{ t3bs.composer_bin_path }}/{{ t3bs.composer_bin }} require {{ item.composer_package }} {{ item.constraint }}"
-  args:
-    chdir: "{{ t3bs.document_root }}/{{ t3bs.project_folder }}"
-  with_items: "{{ t3bs.composer_packages }}"
-  when: composer_lock_file.stat.exists == false
-
-- name: Install/Update TYPO3 community packages
-  become: yes
-  become_user: "{{ t3bs.www_user }}"
-  shell: "{{ t3bs.composer_bin_path }}/{{ t3bs.composer_bin }} require {{ item.composer_package }} {{ item.constraint }}"
-  args:
-    chdir: "{{ t3bs.document_root }}/{{ t3bs.project_folder }}"
-  with_items: "{{ t3bs.typo3_community_extensions }}"
-  when: composer_lock_file.stat.exists == false
 
 - name: Set mysql root password
   mysql_user: name=root host={{ item }} password={{ t3bs.db_root_password }} state=present
@@ -373,7 +415,7 @@
 - name: Run TYPO3 setup routine
   become: yes
   become_user: "{{ t3bs.www_user }}"
-  shell: vendor/bin/typo3cms install:setup --force --non-interactive --database-user-name '{{ t3bs.db_user }}' --database-user-password '{{ t3bs.db_pass }}' --database-host-name '{{ t3bs.db_host }}' --database-name '{{ t3bs.db_name }}' --use-existing-database --admin-user-name '{{ t3bs.typo3_admin_user }}' --admin-password '{{ t3bs.typo3_admin_pass}}' --site-name '{{ t3bs.typo3_site_name}}'
+  shell: vendor/bin/typo3cms install:setup --force --no-interaction --skip-extension-setup --use-existing-database --database-user-name '{{ t3bs.db_user }}' --database-user-password '{{ t3bs.db_pass }}' --database-host-name '{{ t3bs.db_host }}' --database-name '{{ t3bs.db_name }}' --admin-user-name '{{ t3bs.typo3_admin_user }}' --admin-password '{{ t3bs.typo3_admin_pass}}' --site-name '{{ t3bs.typo3_site_name}}'
   args:
     chdir: "{{ t3bs.document_root}}/{{ t3bs.project_folder}}"
 
@@ -388,28 +430,25 @@
 - name: Install default htaccess
   become: yes
   become_user: "{{ t3bs.www_user }}"
-  copy:
-    remote_src: true
-    src: "{{ t3bs.document_root}}/{{ t3bs.project_folder }}/vendor/typo3/cms/_.htaccess"
-    dest: "{{ t3bs.document_root}}/{{ t3bs.project_folder }}/web/.htaccess"
+  template:
+    src: ../templates/htaccess.j2
+    dest: "{{ t3bs.document_root }}/{{ t3bs.project_folder }}/web/.htaccess"
     mode: 0644
     force: "{{ t3bs.replace_htaccess }}"
 
-- name: Activate TYPO3 core extensions
+- name: Activate extensions
   become: yes
   become_user: "{{ t3bs.www_user }}"
-  shell: vendor/bin/typo3cms extension:activate {{ item }}
+  shell: vendor/bin/typo3cms install:generatepackagestates --excluded-extensions {{ t3bs.typo3_extension_exclude|join(',') }}
   args:
     chdir: "{{ t3bs.document_root}}/{{ t3bs.project_folder}}"
-  with_items: "{{ t3bs.typo3_extensions }}"
 
-- name: Activate community extensions
+- name: Setup active extensions
   become: yes
   become_user: "{{ t3bs.www_user }}"
-  shell: vendor/bin/typo3cms extension:activate {{ item.extension_key }}
+  shell: vendor/bin/typo3cms extension:setupactive
   args:
     chdir: "{{ t3bs.document_root}}/{{ t3bs.project_folder}}"
-  with_items: "{{ t3bs.typo3_community_extensions }}"
 
 - name: Download extension translations
   become: yes

@@ -11,7 +11,7 @@
 # predefined ansible tasks are optimized for Ubuntu and may fail when using a
 # base box other than a Ubuntu box.
 #
-box: bento/ubuntu-16.04
+box: ubuntu/bionic64
 server_admin: d.schultheis@kabel-salat.net
 
 #
@@ -69,15 +69,10 @@ use_tls: true
 #
 # TYPO3 Settings
 #
-# Installing other versions than 8.7 is not fully tested and
-# can fail at any time!
-#
-# If you want to install TYPO3 7.6 set typo3_version to ^7.6
-# This will install the latest version of the 7.6.x branch. Please make sure
-# that non existent core TYPO3 extensions are then disabled (like rte_ckeditor).
+# Do not attempt to install TYPO3 below 8.7 as it will most likely fail as TYPO3 7.6 support
+# has been dropped.
 #
 typo3_version: ^8.7
-# typo3_version: ^7.6
 typo3_site_name: TYPO3 Bootstrap
 
 #
@@ -88,6 +83,7 @@ typo3_site_name: TYPO3 Bootstrap
 base_package: dachande/typo3-bootstrap
 base_description: TYPO3 CMS Base Distribution
 base_license: GPL-2.0+
+base_type: project
 
 #
 # TYPO3 Admin User
@@ -113,19 +109,26 @@ db_user: typo3
 db_pass: typo3
 
 #
-# TYPO3 core extensions to be enabled.
+# Additional TYPO3 core extensions
 #
-# This is a list of core extensions that should be initially enabled. You can
-# always enable additional core extensions later on if needed.
+# Besides of the core extensions that are automatically installed for a minimal system
+# you can also specify additional core extensions here that will be installed and
+# activated on provisioning.
 #
-# If you are installing TYPO3 7.6 please make sure that non existent extensions
-# like 'rte_ckeditor' are disabled. In TYPO3 7.6 use 'rtehtmlarea' instead.
+# If you want to install additional core extensions later you'll have to add them to this
+# list and additionally require them by running composer with the following command inside
+# the virtual machine in the folder /var/www/your-typo3-project-folder:
+#
+# composer require typo3/cms-extensionname "*"
+#
+# The extension will automatically be activated after the composer command has finished
+# installing the extension.
 #
 typo3_extensions:
   - about
   - belog
   - beuser
-  - fluid_styled_content
+  # - fluid_styled_content
   - form
   - func
   - impexp
@@ -136,7 +139,6 @@ typo3_extensions:
   - reports
   - rsaauth
   - rte_ckeditor
-#  - rtehtmlarea
   - setup
   - t3editor
   - tstemplate
@@ -144,7 +146,7 @@ typo3_extensions:
   - wizard_sortpages
 
 #
-# TYPO3 community extensions to be installed/enabled
+# TYPO3 community extensions to be installed/activated
 #
 # This list contains all community extensions that will be downloaded, installed
 # and automatically activated. If you want to install a package deviating from
@@ -154,28 +156,32 @@ typo3_extensions:
 #
 # For demonstration purposes the typo3/cms-introduction package ist also
 # installed. If you want to start a new project you should remove that package
-# from this list before provisioning.
+# from this list and add the fluid_styled_content core extension or the
+# bk2k/bootstrap-package community extension before provisioning.
 #
-# If a
+# This list also contains some editors' best pick extensions. Just remove the comments
+# to install them.
 #
 typo3_community_extensions:
   - {composer_package: dmitryd/typo3-realurl, extension_key: realurl, constraint: ~}
   ## Variant: bootstrap and introduction package   
+  #
+  # Variant: foundation and start distribution
   # - {composer_package: typo3/cms-introduction, extension_key: introduction, constraint: ^3.0}
+  # - {composer_package: arminvieweg/dce, extension_key: dce, constraint: ~}
+  # - {composer_package: clickstorm/go_maps_ext, extension_key: go_maps_ext, constraint: ~}
+  # - {composer_package: b13/seo_basics, extension_key: seo_basics, constraint: ~}
+  # - {composer_package: bk2k/bootstrap-package, extension_key: bootstrap_package, constraint: ~}
+  # - {composer_package: fluidtypo3/vhs, extension_key: vhs, constraint: ~}
+  # - {composer_package: friendsoftypo3/extension-builder, extension_key: extension_builder, constraint: ~}
+  # - {composer_package: friendsoftypo3/frontend-editing, extension_key: frontend_editing, constraint: ~}
+  # - {composer_package: georgringer/news, extension_key: news, constraint: ~}
+  # - {composer_package: gridelementsteam/gridelements, extension_key: gridelements, constraint: ~}
   # - {composer_package: in2code/powermail, extension_key: powermail, constraint: ~}
   # - {composer_package: in2code/powermail_cond, extension_key: powermail_cond, constraint: ~}
   # - {composer_package: in2code/powermailrecaptcha, extension_key: powermailrecaptcha, constraint: ~}
   # - {composer_package: in2code/femanager, extension_key: femanager, constraint: ~}
-  # - {composer_package: fluidtypo3/vhs, extension_key: vhs, constraint: ~}
-  # - {composer_package: arminvieweg/dce, extension_key: dce, constraint: ~}
-  # - {composer_package: georgringer/news, extension_key: news, constraint: ~}
-  # - {composer_package: b13/seo_basics, extension_key: seo_basics, constraint: ~}
-  # - {composer_package: gridelementsteam/gridelements, extension_key: gridelements, constraint: ~}
-  # - {composer_package: clickstorm/go_maps_ext, extension_key: go_maps_ext, constraint: ~}
-  # - {composer_package: namelesscoder/inline-page-editing, extension_key: inline_page_editing, constraint: dev-master}
-  - {composer_package: friendsoftypo3/extension-builder, extension_key: extension_builder, constraint: ~}
-  #
-  # Variant: foundation and start distribution
+  # - {composer_package: netresearch/rte-ckeditor-image, extension_key: rte_ckeditor_image, constraint: ~}
   #
   # The start distribution using foundation framework, start and launchstartgreen package and
   # it's dependencies are also available.
@@ -205,6 +211,16 @@ typo3_community_extensions:
   - {composer_package: typo3-ter/tsconf, extension_key: tsconf, constraint: ~}
   #
   # # end of foundation and start distribution variants
+  # - {composer_package: netresearch/rte-ckeditor-image, extension_key: rte_ckeditor_image, constraint: ~}
+
+#
+# TYPO3 community extensions that should not be activated
+#
+# While provisioning the virtual machine all community extensions that are installed
+# will also be activated by default. To prevent extensions from being activated
+# you can mention the extension key here.
+#
+typo3_extension_exclude: []
 
 #
 # TYPO3 Mail configuration
@@ -320,13 +336,13 @@ composer: []
 #
 # Additional composer packages to install
 #
-composer_packages:
-  - {composer_package: helhum/typo3-console, constraint: ~}
+composer_packages: []
+  # - {composer_package: helhum/typo3-console, constraint: ~}
 
 #
 # PHP version to use.
 #
-php_version: 7.1
+php_version: "7.1"
 
 #
 # PHP settings
@@ -343,6 +359,51 @@ php_ini_cli:
   - {section: PHP, option: max_input_vars, value: 1500}
   - {section: PHP, option: display_errors, value: On}
   - {section: Date, option: date.timezone, value: Europe/Berlin}
+
+#
+# Xdebug configuration
+#
+xdebug:
+  debugger:
+    # Enable/disable Xdebug debugger component
+    enable: 1
+
+    # Set this to 1 if you don't want to use a browser plugin to dynamically enable/disable debugging
+    autostart: 0
+
+    # Remote host for your xdebug session. This is the (gateway) IP address of
+    # the host machine seen by the guest VM. In a default virtualbox environment this
+    # should be 10.0.2.2 so normally you won't have to change this value unless your
+    # virtualbox configuration has changed.
+    remote_host: 10.0.2.2
+
+    # Port of your debugging client. This should normally stay at the default setting (9000)
+    remote_port: 9000
+
+    # The IDE key that should be used when connecting to the Xdebug client
+    idekey: vscode
+
+    # Controls the protection mechanism for infinite recursion protection.
+    # The value of this setting is the maximum level of nested functions that are
+    # allowed before the script will be aborted.
+    max_nesting_level: 512
+
+  profiler:
+    # Enable/disable Xdebug profiler component. If you use the enable_trigger feature (see below)
+    # this option should be set to 0. Otherwise the profiler will generate profile files for each request.
+    enable: 0
+
+    # Output directory for profiler cachgrind file.
+    output_dir: /vargrant/profiler
+
+    # Filename of the profiler cachegrind output file
+    output_name: xdebug.out.%t
+
+    # When this setting is set to 1, you can trigger the generation of profiler files by using
+    # the XDEBUG_PROFILE GET/POST parameter, or set a cookie with the name XDEBUG_PROFILE.
+    # This will then write the profiler data. In order to prevent the profiler to generate profile
+    # files for each request, you need to set 'enable' to 0 (see above).
+    enable_trigger: 1
 
 #
 # Install nodejs
@@ -375,18 +436,19 @@ requirements:
   - git
   - golang-go
   - graphicsmagick
-  - libapache2-mod-php7.1
+  - libapache2-mod-php#PHPVER#
   - mariadb-server
-  - php7.1
-  - php7.1-curl
-  - php7.1-gd
-  - php7.1-intl
-  - php7.1-mbstring
-  - php7.1-mcrypt
-  - php7.1-mysql
-  - php7.1-soap
-  - php7.1-xml
-  - php7.1-zip
+  - php#PHPVER#
+  - php#PHPVER#-curl
+  - php#PHPVER#-gd
+  - php#PHPVER#-intl
+  - php#PHPVER#-mbstring
+  - php#PHPVER#-mcrypt
+  - php#PHPVER#-mysql
+  - php#PHPVER#-soap
+  - php#PHPVER#-xml
+  - php#PHPVER#-zip
+  - php-xdebug
   - phpmyadmin
   - pwgen
   - unzip
@@ -410,3 +472,4 @@ mailhog_folder: /opt/mailhog
 composer_bin_path: /usr/local/bin
 composer_bin: composer
 php_bin_path: /usr/bin
+xdebug_profiler_output_dir: /vargrant/profiler
