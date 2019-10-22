@@ -189,7 +189,7 @@ typo3_community_extensions:
   # and uncomment the following lines
   # #
   - {composer_package: in2code/powermail, extension_key: powermail, constraint: ~}
-  - {composer_package: gridelementsteam/gridelements, extension_key: gridelements, constraint: ~}
+  - {composer_package: gridelementsteam/gridelements, extension_key: gridelements, constraint: ^8.5}
   - {composer_package: typo3-ter/refresh, extension_key: refresh, constraint: ~}
   - {composer_package: typo3-ter/t3foundation, extension_key: t3foundation, constraint: ~}
   - {composer_package: typo3-ter/start, extension_key: start, constraint: ~}
